@@ -1,6 +1,6 @@
 {
   "name": "mailgate",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Self-hosted, receive-only email & OTP inbox powered by Cloudflare Email Routing, Workers, and D1 — with a web reader and zero-dependency E2E testing SDK.",
   "license": "MIT",
   "type": "module",

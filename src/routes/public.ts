@@ -118,7 +118,7 @@ export async function handlePublicApi(
     return json({
       ok: true,
       service: 'mailgate',
-      version: '1.0.0',
+      version: '1.1.0',
       timestamp: new Date().toISOString(),
     });
   }

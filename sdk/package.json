@@ -1,7 +1,7 @@
 {
   "name": "mailgate-sdk",
-  "version": "1.0.0",
-  "description": "Zero-dependency JavaScript/TypeScript client SDK for MailGate — waitForOtp() and waitForEmail() for Playwright, Cypress, and CI/CD E2E tests.",
+  "version": "1.1.0",
+  "description": "Zero-dependency client SDK, CLI, Playwright fixture, and stdio MCP server for MailGate self-hosted OTP & magic-link inboxes.",
   "license": "MIT",
   "type": "module",
   "homepage": "https://github.com/Dicka18/mailgate/tree/main/sdk#readme",
@@ -15,20 +15,38 @@
   },
   "main": "./index.mjs",
   "types": "./index.d.ts",
+  "bin": {
+    "mailgate": "./cli.mjs",
+    "mailgate-mcp": "./mcp.mjs"
+  },
   "exports": {
     ".": {
       "types": "./index.d.ts",
       "import": "./index.mjs"
+    },
+    "./playwright": {
+      "types": "./playwright.d.ts",
+      "import": "./playwright.mjs"
+    },
+    "./mcp": {
+      "import": "./mcp.mjs"
     }
   },
   "files": [
     "index.mjs",
     "index.d.ts",
+    "playwright.mjs",
+    "playwright.d.ts",
+    "cli.mjs",
+    "mcp.mjs",
     "README.md",
     "LICENSE"
   ],
   "keywords": [
     "mailgate",
+    "mcp",
+    "model-context-protocol",
+    "claude-code",
     "otp",
     "e2e",
     "playwright",

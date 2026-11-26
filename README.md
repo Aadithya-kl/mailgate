@@ -102,30 +102,60 @@ Then enable **Cloudflare Email Routing** on your domain:
 
 ---
 
+## MCP Server for Claude Code & AI Agents
+
+If you use Claude Code, Cursor, or another MCP-compatible coding agent to test web apps in a browser, the agent usually gets stuck at email OTP or magic-link screens. `mailgate-sdk` bundles a zero-dependency stdio MCP server (`mailgate-mcp`) that exposes `mailgate_wait_for_otp`, `mailgate_wait_for_email`, `mailgate_list_messages`, `mailgate_create_inbox`, `mailgate_clear_messages`, and `mailgate_simulate_email`.
+
+Add it to Claude Code in one command:
+
+```bash
+claude mcp add mailgate \
+  -e MAILGATE_URL=https://mailgate.example.com \
+  -e MAILGATE_ADMIN_TOKEN=optional-admin-token \
+  -- npx -y mailgate-sdk mcp
+```
+
+Or drop it into `.cursor/mcp.json` / Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "mailgate": {
+      "command": "npx",
+      "args": ["-y", "mailgate-sdk", "mcp"],
+      "env": {
+        "MAILGATE_URL": "https://mailgate.example.com"
+      }
+    }
+  }
+}
+```
+
+---
+
 ## Playwright / CI Usage (`mailgate-sdk`)
 
-Install the zero-dependency SDK from npm (`npm install -D mailgate-sdk`) or import from [`./sdk`](./sdk/README.md):
+Install the zero-dependency SDK from npm (`npm install -D mailgate-sdk`) or see [`./sdk/README.md`](./sdk/README.md).
+
+### Playwright Fixture (`mailgate-sdk/playwright`)
+
+`createMailGateTest` automatically sets `since` to each test's start time so stale OTPs from earlier runs are ignored:
 
 ```ts
-import { test, expect } from '@playwright/test';
-import { MailGateClient } from 'mailgate-sdk';
+import { test as base, expect } from '@playwright/test';
+import { createMailGateTest } from 'mailgate-sdk/playwright';
 
-const mailgate = new MailGateClient({
+const test = createMailGateTest(base, {
   baseUrl: process.env.MAILGATE_URL!,
-  adminToken: process.env.MAILGATE_ADMIN_TOKEN,
+  defaultEmail: 'e2e-auth@example.com',
 });
 
-test('user can sign in via email OTP', async ({ page }) => {
-  const email = 'e2e-auth@example.com';
-  const startedAt = new Date();
-
+test('user can sign in via email OTP', async ({ page, mailgate }) => {
   await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Email').fill('e2e-auth@example.com');
   await page.getByRole('button', { name: 'Send verification code' }).click();
 
   const { otpCode } = await mailgate.waitForOtp({
-    email,
-    since: startedAt,
     sender: 'no-reply@yourapp.com',
     timeoutMs: 30_000,
   });
@@ -134,6 +164,12 @@ test('user can sign in via email OTP', async ({ page }) => {
   await page.getByRole('button', { name: 'Verify' }).click();
   await expect(page).toHaveURL('/dashboard');
 });
+```
+
+### Shell / CI CLI
+
+```bash
+OTP=$(MAILGATE_URL=https://mailgate.example.com npx -y mailgate-sdk otp e2e-auth@example.com)
 ```
 
 ---
