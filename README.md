@@ -1,5 +1,9 @@
 # MailGate
 
+[![CI](https://github.com/Dicka18/mailgate/actions/workflows/ci.yml/badge.svg)](https://github.com/Dicka18/mailgate/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0f766e.svg)](./LICENSE)
+[![Release](https://img.shields.io/github/v/release/Dicka18/mailgate?color=0f766e)](https://github.com/Dicka18/mailgate/releases)
+
 **Self-hosted, receive-only email & OTP inbox on Cloudflare Workers + D1 + Email Routing.**
 
 Stop paying \$29–\$99/mo for hosted QA email sandboxes or spinning up disposable SMTP servers. MailGate turns any custom domain on Cloudflare into an instant, allowlist-controlled inbox viewer with automatic OTP/magic-link extraction, sandboxed HTML rendering, and a zero-dependency E2E testing SDK (`waitForOtp()` / `waitForEmail()`).
