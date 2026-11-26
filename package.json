@@ -1,0 +1,47 @@
+{
+  "name": "mailgate",
+  "version": "1.0.0",
+  "description": "Self-hosted, receive-only email & OTP inbox powered by Cloudflare Email Routing, Workers, and D1 — with a web reader and zero-dependency E2E testing SDK.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/Dicka18/mailgate#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dicka18/mailgate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dicka18/mailgate/issues"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "cloudflare-d1",
+    "email-routing",
+    "otp",
+    "disposable-email",
+    "e2e-testing",
+    "playwright",
+    "self-hosted",
+    "inbox",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply mailgate-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply mailgate-db --remote",
+    "db:seed:local": "wrangler d1 execute mailgate-db --local --file=./scripts/seed.dev.sql",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.ts tests/*.test.mjs"
+  },
+  "dependencies": {
+    "postal-mime": "^2.7.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261123.1",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.166.0"
+  }
+}

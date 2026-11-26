@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MailGate — Self-Hosted OTP &amp; Email Inbox</title>
+  <meta name="description" content="Receive-only email and OTP inbox powered by Cloudflare Email Routing, Workers, and D1." />
+  <script src="./theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- =======================================================================
+       PHASE 1: INBOX SIGN-IN
+       ======================================================================= -->
+  <section class="phase phase--login" id="phase-login" aria-labelledby="login-heading">
+    <div class="login-topbar">
+      <div class="login-topbar__brand">
+        <span class="nav__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+          </svg>
+        </span>
+        <span class="brand-name">MailGate</span>
+      </div>
+
+      <div class="login-topbar__actions">
+        <button type="button" class="icon-pill-btn theme-toggle" aria-label="Toggle light or dark theme">
+          <svg class="icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+          <svg class="icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="login-stage">
+      <div class="login-split">
+        <div class="login-aside">
+          <div>
+            <span class="login-aside__tag">Receive-Only Edge Inbox</span>
+            <h1 class="login-aside__title" id="login-heading">Read OTPs &amp; incoming mail instantly</h1>
+            <p class="login-aside__copy">
+              Inspect verification codes, magic links, and transactional notifications on your own domain — zero SMTP server required.
+            </p>
+          </div>
+
+          <dl class="login-aside__facts">
+            <div>
+              <dt>Delivery</dt>
+              <dd class="mono">Cloudflare Email Routing</dd>
+            </div>
+            <div>
+              <dt>HTML Safety</dt>
+              <dd>Sanitized &amp; Sandboxed</dd>
+            </div>
+            <div>
+              <dt>Automation</dt>
+              <dd class="mono">/api/inbox/latest-otp</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="login-panel">
+          <div class="login-panel__head">
+            <h2>Open Inbox</h2>
+            <p>Enter an allowlisted inbox address. A password is only required if the inbox is locked.</p>
+          </div>
+
+          <form class="login-form" id="inbox-open-form" novalidate>
+            <div class="field">
+              <label class="field__label" for="inbox-email">Email address</label>
+              <div class="input-wrap">
+                <input
+                  class="input input--mono"
+                  id="inbox-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  spellcheck="false"
+                  placeholder="otp@example.com"
+                  aria-required="true"
+                  aria-describedby="inbox-email-helper"
+                />
+              </div>
+              <p class="field__helper" id="inbox-email-helper">Enter your email address to check access requirements.</p>
+            </div>
+
+            <div class="field" id="inbox-password-group">
+              <label class="field__label" for="inbox-password">
+                <span>Password</span>
+                <span class="badge" id="password-mode-badge">Optional</span>
+              </label>
+              <div class="input-wrap">
+                <input
+                  class="input"
+                  id="inbox-password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Leave blank if not required"
+                  aria-describedby="inbox-password-helper"
+                />
+                <button
+                  type="button"
+                  class="input-toggle-btn"
+                  id="toggle-inbox-password"
+                  aria-label="Show or hide password"
+                >
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+              <p class="field__helper" id="inbox-password-helper">Leave empty for open inboxes.</p>
+            </div>
+
+            <div class="notice notice--error" id="inbox-error-banner" role="alert" hidden></div>
+
+            <button type="submit" class="btn btn--primary btn--full" id="inbox-open-btn">Open Inbox</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <footer class="login-foot">
+      <span>MailGate — Open-Source Receive-Only Inbox</span>
+      <span>Press <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> for commands</span>
+    </footer>
+  </section>
+
+  <!-- =======================================================================
+       PHASE 2: FULL-VIEWPORT WEBMAIL READER
+       ======================================================================= -->
+  <section class="phase phase--inbox" id="phase-inbox" aria-label="Inbox reader workspace" hidden>
+    <header class="mail-topbar">
+      <div class="mail-topbar__left">
+        <span class="nav__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+          </svg>
+        </span>
+        <span class="mail-wordmark"><strong>MAILGATE</strong> <span>INBOX</span></span>
+      </div>
+
+      <div class="mail-topbar__right">
+        <div class="theme-seg" role="group" aria-label="Theme switcher">
+          <button type="button" class="theme-seg__btn" id="theme-set-light" aria-label="Light mode" aria-pressed="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </button>
+          <button type="button" class="theme-seg__btn" id="theme-set-dark" aria-label="Dark mode" aria-pressed="false">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <button type="button" class="icon-square-btn" id="close-inbox-btn" aria-label="Sign out of inbox" title="Sign out">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="mail-app-body" id="inbox-shell">
+      <aside class="mail-sidebar" aria-label="Inbox sidebar">
+        <div class="sidebar-account">
+          <div class="sidebar-account__label">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+            </svg>
+            <span>Active Address</span>
+          </div>
+
+          <div class="active-email-box">
+            <span class="mono active-email-box__text" id="active-inbox-email"></span>
+          </div>
+
+          <div class="sidebar-account__actions">
+            <button type="button" class="btn-soft-rect" id="copy-address-btn">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+            <span class="meta-inline" id="last-sync-text">Auto-refresh active</span>
+          </div>
+        </div>
+
+        <div class="sidebar-controls">
+          <div class="sidebar-controls__head">
+            <div class="sidebar-controls__title">
+              <h2>Messages</h2>
+              <span class="count-pill" id="active-inbox-count" aria-live="polite">0</span>
+            </div>
+
+            <button
+              type="button"
+              class="auto-switch"
+              id="auto-refresh-btn"
+              role="switch"
+              aria-checked="true"
+            >
+              <span class="auto-switch__track" aria-hidden="true">
+                <span class="auto-switch__thumb"></span>
+              </span>
+              <span>Auto</span>
+            </button>
+          </div>
+
+          <div class="sidebar-search-row">
+            <div class="sidebar-search-wrap">
+              <svg class="icon sidebar-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
+              <input
+                class="sidebar-search-input"
+                id="inbox-search-input"
+                type="search"
+                placeholder="Search sender, subject, OTP…"
+                aria-label="Search messages"
+              />
+            </div>
+
+            <button type="button" class="icon-square-btn" id="refresh-inbox-btn" aria-label="Refresh messages" title="Refresh">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                <path d="M16 16h5v5"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-list-scroll">
+          <ul class="msg-list" id="msg-list"></ul>
+          <div class="centered-empty" id="msg-list-empty" hidden>
+            <div class="centered-empty__circle" aria-hidden="true">
+              <svg class="icon icon--lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+              </svg>
+            </div>
+            <h3>No messages yet</h3>
+            <p>Incoming emails for this address will appear here automatically.</p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="mail-reader-canvas" aria-label="Selected message reader">
+        <div class="centered-empty" id="reader-empty">
+          <div class="centered-empty__circle" aria-hidden="true">
+            <svg class="icon icon--lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+            </svg>
+          </div>
+          <h3>Select a message</h3>
+          <p>Choose any message on the left to inspect its OTP code, magic link, and sanitized HTML body.</p>
+        </div>
+
+        <article class="reader-view" id="reader-content" hidden>
+          <div class="reader-subject-bar">
+            <h1 class="reader-subject-title" id="reader-subject"></h1>
+            <span class="reader-label-chip">Inbox</span>
+          </div>
+
+          <div class="reader-meta-bar">
+            <div class="reader-meta-left">
+              <span class="avatar-badge avatar-badge--lg" id="reader-avatar" aria-hidden="true">M</span>
+              <div class="reader-meta-text">
+                <div class="reader-from-line">
+                  <strong class="reader-from-name" id="reader-sender-name"></strong>
+                  <span class="reader-from-email" id="reader-from"></span>
+                </div>
+                <div class="reader-to-line">
+                  <span>to</span>
+                  <span class="mono" id="reader-to"></span>
+                </div>
+              </div>
+            </div>
+            <time class="reader-timestamp" id="reader-date"></time>
+          </div>
+
+          <div class="reader-quick-strip" id="reader-otp-banner" hidden>
+            <div class="reader-quick-strip__info">
+              <span class="reader-quick-strip__label">Verification code</span>
+              <span class="mono reader-quick-strip__code" id="reader-otp-code"></span>
+            </div>
+            <button type="button" class="btn btn--primary btn--compact" id="reader-otp-copy">Copy OTP</button>
+          </div>
+
+          <div class="reader-quick-strip reader-quick-strip--link" id="reader-link-banner" hidden>
+            <div class="reader-quick-strip__info min-w-0">
+              <span class="reader-quick-strip__label">Detected verification link</span>
+              <span class="mono reader-link-url" id="reader-link-url"></span>
+            </div>
+            <div class="action-row">
+              <a class="btn btn--primary btn--compact" id="reader-link-open" href="#" target="_blank" rel="noopener noreferrer">Open link</a>
+              <button type="button" class="btn btn--soft btn--compact" id="reader-link-copy">Copy URL</button>
+            </div>
+          </div>
+
+          <div class="reader-body-sheet">
+            <iframe
+              class="reader-body-iframe"
+              id="reader-iframe"
+              sandbox="allow-popups allow-popups-to-escape-sandbox"
+              referrerpolicy="no-referrer"
+              title="Sanitized email message body"
+            ></iframe>
+          </div>
+        </article>
+      </main>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       PHASE 3: ADMIN PANEL (Allowlist, Simulator & Stored Messages)
+       ======================================================================= -->
+  <section class="phase phase--admin" id="phase-admin" aria-labelledby="admin-heading" hidden>
+    <div class="nav-wrap">
+      <header class="nav-pill">
+        <div class="nav__brand-group">
+          <span class="nav__mark" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+            </svg>
+          </span>
+          <span class="brand-name">MailGate Admin</span>
+        </div>
+
+        <div class="nav__tools">
+          <button type="button" class="btn btn--compact" id="admin-back-login-btn">Back to Inbox Login</button>
+          <button type="button" class="icon-pill-btn theme-toggle" aria-label="Toggle light or dark theme">
+            <svg class="icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            </svg>
+            <svg class="icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+    </div>
+
+    <main class="shell">
+      <div class="admin-head">
+        <div>
+          <h1 class="admin-head__title" id="admin-heading">Allowlist &amp; Inbox Control</h1>
+          <p class="admin-head__lede">
+            Manage allowlisted email addresses, toggle per-inbox passwords, simulate RFC822 messages, and inspect stored mail across your domain.
+          </p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-cell">
+            <span class="stat-cell__label">Primary domain</span>
+            <span class="stat-cell__value" id="admin-meta-domain">—</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-cell__label">Active inboxes</span>
+            <span class="stat-cell__value" id="admin-meta-inboxes">—</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-cell__label">Ingest policy</span>
+            <span class="stat-cell__value" id="admin-meta-policy">—</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-cell__label">Stored messages</span>
+            <span class="stat-cell__value" id="admin-meta-messages">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-stack" id="admin-workspace">
+        <div class="admin-bar">
+          <div class="action-row">
+            <span class="badge badge--success">Admin Session Active</span>
+            <span class="mono meta-inline" id="admin-summary-line">Loading…</span>
+          </div>
+          <div class="action-row">
+            <button type="button" class="btn btn--soft btn--compact" id="admin-refresh-btn">Refresh</button>
+            <button type="button" class="btn btn--ghost btn--compact" id="admin-logout-btn">Sign Out</button>
+          </div>
+        </div>
+
+        <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+          <button type="button" class="admin-tab is-active" id="tab-btn-inboxes" role="tab" aria-selected="true" aria-controls="admin-panel-inboxes" data-admin-tab="inboxes">
+            <span>Allowed Inboxes</span>
+            <span class="count-pill" id="tab-count-inboxes">0</span>
+          </button>
+          <button type="button" class="admin-tab" id="tab-btn-messages" role="tab" aria-selected="false" aria-controls="admin-panel-messages" data-admin-tab="messages">
+            <span>Recent Messages</span>
+            <span class="count-pill" id="tab-count-messages">0</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: ALLOWED INBOXES & SIMULATOR -->
+        <div class="admin-tab-panel" id="admin-panel-inboxes" role="tabpanel" aria-labelledby="tab-btn-inboxes">
+          <div class="admin-split">
+            <section class="panel-block" aria-labelledby="create-inbox-title">
+              <div class="panel-block__head">
+                <div>
+                  <h2 class="panel-block__title" id="create-inbox-title">Add allowlisted inbox</h2>
+                  <p class="panel-block__sub">Enable an address to receive mail and optionally lock it with a PBKDF2 password.</p>
+                </div>
+              </div>
+              <form class="form-grid" id="create-inbox-form" novalidate>
+                <div class="form-grid form-grid--2">
+                  <div class="field">
+                    <label class="field__label" for="new-inbox-email">Email address</label>
+                    <input class="input input--mono" id="new-inbox-email" type="email" placeholder="qa-auth@example.com" aria-required="true" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="new-inbox-label">Label <span class="field__optional">(optional)</span></label>
+                    <input class="input" id="new-inbox-label" type="text" placeholder="Playwright E2E Suite" />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <span class="field__label">Access protection</span>
+                  <div class="mode-switch" role="radiogroup" aria-label="Inbox password mode">
+                    <button type="button" class="mode-switch__btn" id="create-mode-open" role="radio" aria-checked="true">
+                      Open (no password)
+                    </button>
+                    <button type="button" class="mode-switch__btn" id="create-mode-locked" role="radio" aria-checked="false">
+                      Password-protected
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field" id="new-inbox-password-wrap" hidden>
+                  <label class="field__label" for="new-inbox-password">Inbox password</label>
+                  <div class="input-action-row">
+                    <input class="input input--mono" id="new-inbox-password" type="text" placeholder="Minimum 4 characters" />
+                    <button type="button" class="btn btn--compact" id="generate-new-pw-btn">Generate</button>
+                  </div>
+                </div>
+
+                <div class="notice" id="create-inbox-feedback" hidden></div>
+
+                <div class="action-row">
+                  <button type="submit" class="btn btn--primary" id="create-inbox-btn">Create Inbox</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel-block" id="simulate-panel" aria-labelledby="simulate-title">
+              <div class="panel-block__head">
+                <div>
+                  <h2 class="panel-block__title" id="simulate-title">Simulate incoming email</h2>
+                  <p class="panel-block__sub">Test the full RFC822 MIME parser, OTP extractor, and D1 write pipeline instantly.</p>
+                </div>
+              </div>
+              <form class="form-grid" id="simulate-form" novalidate>
+                <div class="form-grid form-grid--2">
+                  <div class="field">
+                    <label class="field__label" for="sim-to">Recipient (To)</label>
+                    <input class="input input--mono" id="sim-to" type="email" placeholder="otp@example.com" aria-required="true" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="sim-from">Sender (From)</label>
+                    <input class="input input--mono" id="sim-from" type="email" value="no-reply@verify.example" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="sim-subject">Subject <span class="field__optional">(blank = random OTP)</span></label>
+                  <input class="input" id="sim-subject" type="text" placeholder="Your verification code: 731904" />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="sim-body">Body <span class="field__optional">(blank = OTP template)</span></label>
+                  <textarea class="textarea" id="sim-body" placeholder="Use code 731904 to verify your session."></textarea>
+                </div>
+                <div class="notice" id="simulate-feedback" hidden></div>
+                <div>
+                  <button type="submit" class="btn btn--soft" id="simulate-btn">Send Simulated Email</button>
+                </div>
+              </form>
+            </section>
+          </div>
+
+          <section class="panel-block" aria-labelledby="inboxes-list-title">
+            <div class="panel-block__head">
+              <div>
+                <h2 class="panel-block__title" id="inboxes-list-title">Allowlisted Inboxes</h2>
+                <p class="panel-block__sub" id="admin-inboxes-subtitle">Toggle active status, rotate passwords, or purge stored messages.</p>
+              </div>
+              <div class="admin-table-toolbar">
+                <input class="sidebar-search-input" id="admin-inbox-search" type="search" placeholder="Filter email or label…" aria-label="Filter inboxes" style="min-width:14rem;min-height:2.35rem;padding-inline:0.75rem" />
+                <button type="button" class="btn btn--soft btn--compact" id="export-inboxes-csv-btn">Export CSV</button>
+              </div>
+            </div>
+
+            <div class="admin-data-table-wrap">
+              <table class="admin-data-table" id="admin-inboxes-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th>Email Address</th>
+                    <th>Label</th>
+                    <th>Status &amp; Auth</th>
+                    <th>Messages</th>
+                    <th class="col-actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-inboxes-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- TAB 2: RECENT MESSAGES -->
+        <div class="admin-tab-panel" id="admin-panel-messages" role="tabpanel" aria-labelledby="tab-btn-messages" hidden>
+          <section class="panel-block" aria-labelledby="admin-messages-title">
+            <div class="panel-block__head">
+              <div>
+                <h2 class="panel-block__title" id="admin-messages-title">Stored Messages</h2>
+                <p class="panel-block__sub" id="admin-messages-subtitle">Latest 50 emails stored across your domain.</p>
+              </div>
+              <div class="admin-table-toolbar">
+                <div class="filter-pills" role="group" aria-label="Filter messages">
+                  <button type="button" class="filter-pill is-active" data-msg-filter="all">All</button>
+                  <button type="button" class="filter-pill" data-msg-filter="otp">With OTP</button>
+                </div>
+                <input class="sidebar-search-input" id="admin-msg-search" type="search" placeholder="Filter recipient, sender, subject…" aria-label="Filter messages" style="min-width:14rem;min-height:2.35rem;padding-inline:0.75rem" />
+                <button type="button" class="btn btn--soft btn--compact" id="export-csv-btn">Export CSV</button>
+              </div>
+            </div>
+
+            <div class="admin-data-table-wrap">
+              <table class="admin-data-table" id="admin-messages-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th>Received</th>
+                    <th>Recipient</th>
+                    <th>Sender</th>
+                    <th>Subject &amp; Preview</th>
+                    <th>OTP</th>
+                    <th class="col-actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-messages-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- Native Dialog: Ctrl+K Command Palette -->
+  <dialog class="modal" id="cmdk-dialog" aria-label="MailGate quick commands">
+    <div class="cmdk-field">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+      <input id="cmdk-input" type="search" placeholder="Type a command…" autocomplete="off" />
+      <kbd class="kbd">Esc</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdk-results" role="listbox" aria-label="Command results"></div>
+    <div class="cmdk-foot">
+      <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> navigate</span>
+      <span><kbd class="kbd">↵</kbd> run</span>
+      <span><kbd class="kbd">Esc</kbd> close</span>
+    </div>
+  </dialog>
+
+  <!-- Native Dialog: Edit Inbox -->
+  <dialog class="modal" id="edit-inbox-dialog" aria-labelledby="edit-dialog-title">
+    <form id="edit-inbox-form" method="dialog" novalidate>
+      <div class="modal__head">
+        <h2 id="edit-dialog-title" class="modal__title">Edit Inbox Settings</h2>
+        <button type="button" class="btn btn--ghost btn--compact" id="edit-dialog-close">Close</button>
+      </div>
+      <div class="modal__body">
+        <p class="mono modal__email" id="edit-dialog-email"></p>
+
+        <div class="field">
+          <label class="field__label" for="edit-label-input">Label</label>
+          <input class="input" id="edit-label-input" type="text" placeholder="e.g. Staging Auth QA" />
+        </div>
+
+        <div class="field">
+          <span class="field__label">Access protection</span>
+          <div class="mode-switch" role="radiogroup" aria-label="Edit password mode">
+            <button type="button" class="mode-switch__btn" id="edit-mode-open" role="radio" aria-checked="true">
+              Open (no password)
+            </button>
+            <button type="button" class="mode-switch__btn" id="edit-mode-locked" role="radio" aria-checked="false">
+              Password-protected
+            </button>
+          </div>
+        </div>
+
+        <div class="field" id="edit-password-wrap" hidden>
+          <label class="field__label" for="edit-password-input">New password</label>
+          <div class="input-action-row">
+            <input class="input input--mono" id="edit-password-input" type="text" placeholder="Leave blank to keep existing password" />
+            <button type="button" class="btn btn--compact" id="generate-edit-pw-btn">Generate</button>
+          </div>
+          <p class="field__helper" id="edit-password-helper">Enter at least 4 characters to set or rotate the password.</p>
+        </div>
+
+        <div class="notice notice--error" id="edit-dialog-error" hidden></div>
+      </div>
+      <div class="modal__foot">
+        <button type="button" class="btn btn--ghost" id="edit-dialog-cancel">Cancel</button>
+        <button type="submit" class="btn btn--primary" id="edit-dialog-save">Save Changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Full-Viewport Admin Message Reader -->
+  <dialog class="modal modal--reader" id="admin-read-dialog" aria-labelledby="admin-read-subject">
+    <header class="admin-read-topbar">
+      <div class="action-row">
+        <button type="button" class="btn btn--soft btn--compact" id="admin-read-close">Back to Admin</button>
+        <span class="recipient-chip" id="admin-read-recipient-chip">Inbox</span>
+      </div>
+      <div class="action-row">
+        <button type="button" class="btn btn--danger btn--compact" id="admin-read-delete">Delete</button>
+        <button type="button" class="btn btn--ghost btn--compact" id="admin-read-done">Close</button>
+      </div>
+    </header>
+
+    <div class="admin-read-canvas">
+      <div class="admin-read-sheet">
+        <div class="reader-subject-bar">
+          <h2 id="admin-read-subject" class="reader-subject-title">Loading…</h2>
+          <span class="reader-label-chip">Stored Message</span>
+        </div>
+
+        <div class="reader-meta-bar">
+          <div class="reader-meta-left">
+            <span class="avatar-badge avatar-badge--lg" id="admin-read-avatar" aria-hidden="true">M</span>
+            <div class="reader-meta-text">
+              <div class="reader-from-line">
+                <strong class="reader-from-name" id="admin-read-sender-name"></strong>
+                <span class="reader-from-email" id="admin-read-from"></span>
+              </div>
+              <div class="reader-to-line">
+                <span>to</span>
+                <span class="mono" id="admin-read-to"></span>
+              </div>
+            </div>
+          </div>
+          <time class="reader-timestamp" id="admin-read-date"></time>
+        </div>
+
+        <div class="reader-quick-strip" id="admin-read-otp-banner" hidden>
+          <div class="reader-quick-strip__info">
+            <span class="reader-quick-strip__label">Verification code</span>
+            <span class="mono reader-quick-strip__code" id="admin-read-otp-code"></span>
+          </div>
+          <button type="button" class="btn btn--primary btn--compact" id="admin-read-otp-copy">Copy OTP</button>
+        </div>
+
+        <div class="reader-quick-strip reader-quick-strip--link" id="admin-read-link-banner" hidden>
+          <div class="reader-quick-strip__info min-w-0">
+            <span class="reader-quick-strip__label">Detected verification link</span>
+            <span class="mono reader-link-url" id="admin-read-link-url"></span>
+          </div>
+          <div class="action-row">
+            <a class="btn btn--primary btn--compact" id="admin-read-link-open" href="#" target="_blank" rel="noopener noreferrer">Open link</a>
+            <button type="button" class="btn btn--soft btn--compact" id="admin-read-link-copy">Copy URL</button>
+          </div>
+        </div>
+
+        <iframe
+          class="admin-read-iframe"
+          id="admin-read-iframe"
+          sandbox="allow-popups allow-popups-to-escape-sandbox"
+          referrerpolicy="no-referrer"
+          title="Admin sanitized email message preview"
+        ></iframe>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

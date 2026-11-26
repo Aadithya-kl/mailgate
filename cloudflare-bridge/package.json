@@ -1,0 +1,17 @@
+{
+  "name": "mailgate-webhook-bridge",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Lightweight Cloudflare Email Routing Worker that parses incoming RFC822 MIME emails and forwards HMAC-SHA256 signed JSON webhooks to any HTTP backend.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "postal-mime": "^2.7.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261123.1",
+    "wrangler": "^4.166.0"
+  }
+}

@@ -1,0 +1,173 @@
+/* MailGate Design Tokens — Soft Emerald (Light + Dark)
+ * Paper band: sage-tinted light (L 96.6%, H 165) + deep charcoal dark (L 15.5%, H 165)
+ * Typography: Plus Jakarta Sans + JetBrains Mono · Accent: Emerald 165°
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --color-paper:          oklch(96.6% 0.005 165);
+  --color-paper-2:        oklch(93.6% 0.008 165);
+  --color-paper-3:        oklch(90.4% 0.009 165);
+  --color-card:           oklch(99.6% 0.002 165);
+  --color-surface-subtle: oklch(97.6% 0.004 165);
+  --color-email-paper:    oklch(99.8% 0.001 165);
+  --color-email-ink:      oklch(19.0% 0.010 250);
+  --color-email-muted:    oklch(46.0% 0.010 250);
+  --color-email-chip-bg:  oklch(93.0% 0.005 250);
+  --color-email-chip-ink: oklch(38.0% 0.010 250);
+  --color-email-strip-bg: oklch(97.0% 0.004 165);
+  --color-email-strip-bd: oklch(88.0% 0.008 165);
+
+  /* Borders */
+  --color-rule:           oklch(89.2% 0.007 165);
+  --color-rule-2:         oklch(81.0% 0.010 165);
+
+  /* Ink hierarchy */
+  --color-ink:            oklch(21.5% 0.008 245);
+  --color-ink-2:          oklch(42.0% 0.012 240);
+  --color-muted:          oklch(50.5% 0.011 235);
+
+  /* Emerald 165° Accent */
+  --color-accent:         oklch(48.5% 0.122 165);
+  --color-accent-hover:   oklch(43.0% 0.118 165);
+  --color-accent-soft:    oklch(94.5% 0.030 165);
+  --color-accent-rule:    oklch(76.5% 0.072 165);
+  --color-accent-ink:     oklch(99.0% 0.005 165);
+
+  /* Focus ring */
+  --color-focus:          oklch(46.0% 0.145 165);
+  --color-focus-on-dark:  oklch(78.0% 0.145 163);
+
+  /* Semantic signals */
+  --color-error:          oklch(50.5% 0.185 26);
+  --color-error-soft:     oklch(95.8% 0.024 25);
+  --color-error-rule:     oklch(79.5% 0.085 26);
+  --color-success:        oklch(46.5% 0.130 158);
+  --color-success-soft:   oklch(95.0% 0.028 160);
+  --color-success-rule:   oklch(78.0% 0.075 160);
+  --color-warn:           oklch(52.0% 0.135 62);
+  --color-warn-soft:      oklch(95.8% 0.032 76);
+
+  /* Deep Forest Emerald Contrast Band */
+  --color-forest:         oklch(20.5% 0.028 168);
+  --color-forest-2:       oklch(24.8% 0.026 168);
+  --color-forest-rule:    oklch(33.0% 0.024 168);
+  --color-forest-ink:     oklch(95.5% 0.006 165);
+  --color-forest-muted:   oklch(75.5% 0.016 165);
+  --color-forest-code:    oklch(79.5% 0.135 162);
+
+  /* Elevation */
+  --color-scrim:          oklch(16.0% 0.015 165 / 0.45);
+  --shadow-1:             0 1px 2px oklch(20.0% 0.020 165 / 0.05), 0 8px 20px -12px oklch(20.0% 0.020 165 / 0.12);
+  --shadow-2:             0 2px 6px oklch(20.0% 0.020 165 / 0.06), 0 18px 36px -18px oklch(20.0% 0.020 165 / 0.16);
+
+  /* Typography */
+  --font-display:         "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body:            "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono:            "JetBrains Mono", ui-monospace, Consolas, monospace;
+
+  /* Modular scale */
+  --text-xs:              0.78rem;
+  --text-sm:              0.875rem;
+  --text-base:            1rem;
+  --text-lg:              1.2rem;
+  --text-xl:              1.45rem;
+  --text-display:         clamp(1.95rem, 2.6vw + 1rem, 2.75rem);
+
+  /* Spacing scale */
+  --space-3xs:            0.125rem;
+  --space-2xs:            0.25rem;
+  --space-xs:             0.5rem;
+  --space-sm:             0.75rem;
+  --space-md:             1rem;
+  --space-lg:             1.5rem;
+  --space-xl:             2.25rem;
+  --space-2xl:            3.5rem;
+  --page-gutter:          clamp(1rem, 3.5vw, 2rem);
+  --page-max:             72rem;
+
+  /* Radii & targets */
+  --radius-sm:            12px;
+  --radius-md:            16px;
+  --radius-lg:            22px;
+  --radius-pill:          999px;
+  --control-height:       2.75rem;
+
+  /* Motion */
+  --ease-out:             cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro:            120ms;
+  --dur-short:            200ms;
+
+  /* Z-index scale */
+  --z-sticky:             200;
+  --z-modal:              400;
+  --z-toast:              500;
+}
+
+:root[data-theme="dark"] {
+  --color-paper:          oklch(15.5% 0.006 165);
+  --color-paper-2:        oklch(19.5% 0.008 165);
+  --color-paper-3:        oklch(24.0% 0.009 165);
+  --color-card:           oklch(21.0% 0.007 165);
+  --color-surface-subtle: oklch(18.5% 0.007 165);
+  --color-rule:           oklch(30.0% 0.009 165);
+  --color-rule-2:         oklch(38.5% 0.011 165);
+  --color-ink:            oklch(95.0% 0.005 165);
+  --color-ink-2:          oklch(77.5% 0.010 165);
+  --color-muted:          oklch(66.5% 0.010 165);
+  --color-accent:         oklch(75.5% 0.145 163);
+  --color-accent-hover:   oklch(81.0% 0.140 163);
+  --color-accent-soft:    oklch(27.0% 0.052 165);
+  --color-accent-rule:    oklch(44.0% 0.085 164);
+  --color-accent-ink:     oklch(18.0% 0.040 165);
+  --color-focus:          oklch(80.0% 0.145 163);
+  --color-error:          oklch(73.0% 0.160 25);
+  --color-error-soft:     oklch(26.5% 0.055 25);
+  --color-error-rule:     oklch(45.0% 0.095 25);
+  --color-success:        oklch(76.5% 0.145 158);
+  --color-success-soft:   oklch(26.5% 0.052 160);
+  --color-success-rule:   oklch(44.0% 0.088 160);
+  --color-warn:           oklch(80.0% 0.140 78);
+  --color-warn-soft:      oklch(27.0% 0.048 72);
+  --color-forest:         oklch(18.0% 0.016 168);
+  --color-forest-2:       oklch(22.0% 0.018 168);
+  --color-forest-rule:    oklch(31.0% 0.016 168);
+  --shadow-1:             0 1px 2px oklch(8.0% 0.005 165 / 0.35);
+  --shadow-2:             0 10px 28px -12px oklch(6.0% 0.005 165 / 0.65);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-paper:          oklch(15.5% 0.006 165);
+    --color-paper-2:        oklch(19.5% 0.008 165);
+    --color-paper-3:        oklch(24.0% 0.009 165);
+    --color-card:           oklch(21.0% 0.007 165);
+    --color-surface-subtle: oklch(18.5% 0.007 165);
+    --color-rule:           oklch(30.0% 0.009 165);
+    --color-rule-2:         oklch(38.5% 0.011 165);
+    --color-ink:            oklch(95.0% 0.005 165);
+    --color-ink-2:          oklch(77.5% 0.010 165);
+    --color-muted:          oklch(66.5% 0.010 165);
+    --color-accent:         oklch(75.5% 0.145 163);
+    --color-accent-hover:   oklch(81.0% 0.140 163);
+    --color-accent-soft:    oklch(27.0% 0.052 165);
+    --color-accent-rule:    oklch(44.0% 0.085 164);
+    --color-accent-ink:     oklch(18.0% 0.040 165);
+    --color-focus:          oklch(80.0% 0.145 163);
+    --color-error:          oklch(73.0% 0.160 25);
+    --color-error-soft:     oklch(26.5% 0.055 25);
+    --color-error-rule:     oklch(45.0% 0.095 25);
+    --color-success:        oklch(76.5% 0.145 158);
+    --color-success-soft:   oklch(26.5% 0.052 160);
+    --color-success-rule:   oklch(44.0% 0.088 160);
+    --color-warn:           oklch(80.0% 0.140 78);
+    --color-warn-soft:      oklch(27.0% 0.048 72);
+    --color-forest:         oklch(18.0% 0.016 168);
+    --color-forest-2:       oklch(22.0% 0.018 168);
+    --color-forest-rule:    oklch(31.0% 0.016 168);
+    --shadow-1:             0 1px 2px oklch(8.0% 0.005 165 / 0.35);
+    --shadow-2:             0 10px 28px -12px oklch(6.0% 0.005 165 / 0.65);
+  }
+}

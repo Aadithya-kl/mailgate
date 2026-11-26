@@ -1,0 +1,8 @@
+name = "mailgate-webhook-bridge"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Configure secrets before deploying:
+#   npx wrangler secret put INGEST_WEBHOOK_URL   # e.g. https://api.example.com/webhooks/inbound-email
+#   npx wrangler secret put INGEST_SECRET        # shared HMAC-SHA256 signing secret

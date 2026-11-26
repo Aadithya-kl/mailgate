@@ -1,0 +1,31 @@
+name = "mailgate"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+html_handling = "auto-trailing-slash"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mailgate-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[vars]
+# Primary domain shown in the UI and admin panel examples
+MAIL_DOMAIN = "example.com"
+# true = only accept and store emails addressed to active entries in allowed_inboxes
+STRICT_ALLOWLIST = "true"
+# Automatically purge messages older than N days via Cron Trigger (0 = disabled)
+RETENTION_DAYS = "14"
+# Enable the built-in RFC822 email simulator endpoint (set "false" in locked-down production)
+ALLOW_SIMULATE = "true"
+
+# Daily cleanup at 03:00 UTC
+[triggers]
+crons = ["0 3 * * *"]
