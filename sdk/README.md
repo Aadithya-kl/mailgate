@@ -1,12 +1,18 @@
-# `@mailgate/sdk`
+# `mailgate-sdk`
 
-Zero-dependency JavaScript/TypeScript SDK for [MailGate](../README.md). Built for Playwright, Cypress, Vitest, and CI/CD authentication tests.
+Zero-dependency JavaScript/TypeScript client SDK for [MailGate](https://github.com/Dicka18/mailgate) — a self-hosted, receive-only OTP & email inbox on Cloudflare Workers + D1. Built for Playwright, Cypress, Vitest, and CI/CD authentication tests.
+
+## Install
+
+```bash
+npm install -D mailgate-sdk
+```
 
 ## Quick Example (Playwright)
 
 ```ts
 import { test, expect } from '@playwright/test';
-import { MailGateClient } from '@mailgate/sdk';
+import { MailGateClient } from 'mailgate-sdk';
 
 const mailgate = new MailGateClient({
   baseUrl: process.env.MAILGATE_URL!, // e.g. https://mailgate.example.com

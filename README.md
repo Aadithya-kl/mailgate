@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/Dicka18/mailgate/actions/workflows/ci.yml/badge.svg)](https://github.com/Dicka18/mailgate/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Dicka18/mailgate/actions/workflows/codeql.yml/badge.svg)](https://github.com/Dicka18/mailgate/actions/workflows/codeql.yml)
+[![npm version](https://img.shields.io/npm/v/mailgate-sdk?color=0f766e&label=mailgate-sdk)](https://www.npmjs.com/package/mailgate-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/mailgate-sdk?color=0f766e)](https://www.npmjs.com/package/mailgate-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0f766e.svg)](./LICENSE)
 [![Release](https://img.shields.io/github/v/release/Dicka18/mailgate?color=0f766e)](https://github.com/Dicka18/mailgate/releases)
 
@@ -100,13 +102,13 @@ Finally, enable **Cloudflare Email Routing** on your domain:
 
 ---
 
-## Playwright / CI E2E Testing (`@mailgate/sdk`)
+## Playwright / CI E2E Testing (`mailgate-sdk`)
 
-Use the zero-dependency SDK in [`./sdk`](./sdk/README.md) to eliminate flaky sleeps and third-party sandbox fees in your auth tests:
+Install the zero-dependency SDK from npm (`npm install -D mailgate-sdk`) or import from [`./sdk`](./sdk/README.md) to eliminate flaky sleeps and third-party sandbox fees in your auth tests:
 
 ```ts
 import { test, expect } from '@playwright/test';
-import { MailGateClient } from './sdk/index.mjs'; // or '@mailgate/sdk'
+import { MailGateClient } from 'mailgate-sdk';
 
 const mailgate = new MailGateClient({
   baseUrl: process.env.MAILGATE_URL!,
